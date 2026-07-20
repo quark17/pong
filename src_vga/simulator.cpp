@@ -8,6 +8,10 @@
 using namespace std;
 
 Vdisplay* display;              // instantiation of the model
+thread* gthread;
+int windowId;
+
+bool finish_requested = false;
 
 uint64_t main_time = 0;         // current simulation time
 double sc_time_stamp() {        // called by $time in Verilog
@@ -55,8 +59,10 @@ void render(void) {
 
 // timer to periodically update the screen
 void glutTimer(int t) {
+  if (! finish_requested) {
     glutPostRedisplay(); // re-renders the screen
     glutTimerFunc(t, glutTimer, t);
+  }
 }
 
 // handle up/down/left/right arrow keys
@@ -78,15 +84,24 @@ void Special_input(int key, int x, int y) {
     }
 }
 
+void Keyboard_input(unsigned char key, int mouseX, int mouseY) {
+  // int mod = glutGetModifiers();
+  // Example: if (key == 'q' && mod == GLUT_ACTIVE_SHIFT)
+  if (key == 'q') {
+    finish_requested = true;
+  }
+}
+
 // initiate and handle graphics
 void graphics_loop(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE);
     glutInitWindowSize(ACTIVE_WIDTH, ACTIVE_HEIGHT);
     glutInitWindowPosition(100, 100);
-    glutCreateWindow("VGA Simulator");
+    windowId = glutCreateWindow("VGA Simulator");
     glutDisplayFunc(render);
     glutSpecialFunc(Special_input);
+    glutKeyboardFunc(Keyboard_input);
     
     gl_setup_complete = true;
     
@@ -173,9 +188,17 @@ void reset() {
     display->reset = 0;
 }
 
+void finish() {
+  glutDestroyWindow(windowId);
+  if (gthread->joinable())
+    gthread->join();
+  Verilated::gotFinish(true);
+  display->eval();
+}
+
 int main(int argc, char** argv) {
     // create a new thread for graphics handling
-    thread thread(graphics_loop, argc, argv);
+    gthread = new thread(graphics_loop, argc, argv);
     // wait for graphics initialization to complete
     while(!gl_setup_complete);
 
@@ -188,15 +211,17 @@ int main(int argc, char** argv) {
     reset();
 
     // cycle accurate simulation loop
-    while (!Verilated::gotFinish()) {
+    while (! Verilated::gotFinish()) {
+      if (finish_requested) {
+	finish();
+      } else {
         tick();
-        tick();
-        // the clock frequency of VGA is half of that of the whole model
-        // so we sample from VGA every other clock
         sample_pixel();
+      }
     }
 
     display->final();
     delete display;
+    return 0;
 }
 

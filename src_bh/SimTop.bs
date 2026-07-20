@@ -1,0 +1,73 @@
+package SimTop (graphics, GraphicsIfc(..)) where
+
+import Global
+import TopNoKbd
+import ControllerNoKbd
+import VGACore
+
+interface GraphicsIfc =
+   up    :: Bool -> Action {-# prefix = "", arg_names = [ "up" ] #-}
+   down  :: Bool -> Action {-# prefix = "", arg_names = [ "down" ] #-}
+   left  :: Bool -> Action {-# prefix = "", arg_names = [ "left" ] #-}
+   right :: Bool -> Action {-# prefix = "", arg_names = [ "right" ] #-}
+
+   coord_x :: Bit 10 -> Action {-# prefix = "", arg_names = [ "coord_x" ] #-}
+   coord_y :: Bit 10 -> Action {-# prefix = "", arg_names = [ "coord_y" ] #-}
+   active_area :: Bool -> Action {-# prefix = "", arg_names = [ "active_area" ] #-}
+
+   rgb :: Bit 3
+
+{-# verilog graphics { noReady, alwaysEnabled } #-}
+{-# verilog graphics { clock_prefix="clk", reset_prefix="reset" } #-}
+graphics :: Module GraphicsIfc
+graphics =
+  module
+
+    top :: TopNoKbdIfc XCoord YCoord <- mkTopNoKbd
+
+    w_hPos :: Wire XCoord <- mkWire
+    w_vPos :: Wire YCoord <- mkWire
+
+    let hPos_eol = fromInteger vgaTiming.h.activeSize
+        vPos_eof = fromInteger vgaTiming.v.activeSize
+        do_tick = (w_hPos == hPos_eol) && (w_vPos == vPos_eof)
+        (hPos_next, vPos_next) =
+            if (w_vPos >= vPos_eof)
+              then (0, 0)
+              else if (w_hPos >= hPos_eol)
+                     then (0, w_vPos + 1)
+                     else (w_hPos + 1, w_vPos)
+
+    interface
+      up = top.controller.userLup
+      down = top.controller.userLdown
+      left _ = noAction
+      right _ = noAction
+
+      coord_x val = w_hPos._write (unpack (zeroExtend val))
+      coord_y val = w_vPos._write (unpack (zeroExtend val))
+      active_area _ = noAction
+
+      rgb = let r = top.red[0:0] | top.red[1:1]
+                g = top.green[0:0] | top.green[1:1]
+                b = top.blue[0:0] | top.blue[1:1]
+            in r ++ g ++ b
+
+    rules
+      "TieOff":
+       when True ==>
+         action
+           top.color1 False
+           top.color2 False
+
+           top.controller.autoL False
+           top.controller.autoR True
+
+           top.controller.userRup False
+           top.controller.userRdown False
+
+      "PosUpd":
+       when True ==> top.coords hPos_next vPos_next
+
+      "Tick":
+       when do_tick ==> top.frameTick

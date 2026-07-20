@@ -1,0 +1,86 @@
+package ControllerNoKbd (
+            ControllerNoKbd(..),
+            ControllerNoKbd_In(..),
+            mkControllerNoKbd
+        ) where
+
+import Paddle
+import Ball
+
+interface ControllerNoKbd_In =
+   autoL     :: Bool -> Action
+   userLup   :: Bool -> Action
+   userLdown :: Bool -> Action
+
+   autoR     :: Bool -> Action
+   userRup   :: Bool -> Action
+   userRdown :: Bool -> Action
+
+interface ControllerNoKbd =
+   inputs :: ControllerNoKbd_In
+
+   autoPlayL :: Bool
+   autoPlayR :: Bool
+
+mkControllerNoKbd:: Paddle -> Paddle -> Ball -> Module ControllerNoKbd
+mkControllerNoKbd paddleL paddleR ball =
+  module
+
+    repeat :: Reg (UInt 20) <- mkReg 0
+
+    rg_autoL     :: Reg Bool <- mkRegU
+    rg_userLup   :: Reg Bool <- mkRegU
+    rg_userLdown :: Reg Bool <- mkRegU
+
+    rg_autoR     :: Reg Bool <- mkRegU
+    rg_userRup   :: Reg Bool <- mkRegU
+    rg_userRdown :: Reg Bool <- mkRegU
+
+    let incr r v = if v then r True else noAction
+
+    interface
+        autoPlayL = rg_autoL
+        autoPlayR = rg_autoR
+        inputs = interface ControllerNoKbd_In
+                   autoL     = incr rg_autoL._write
+                   userLup   = incr rg_userLup._write
+                   userLdown = incr rg_userLdown._write
+
+                   autoR     = incr rg_autoR._write
+                   userRup   = incr rg_userRup._write
+                   userRdown = incr rg_userRdown._write
+
+    rules
+       "Delay":
+        when True ==>
+          action
+            repeat := if repeat == 0 then 110000 else repeat - 1
+
+       "Act":
+        when (repeat == 0) ==>
+          action
+            if (rg_autoL && not ball.dir) then
+              paddleL.inc_dec (ball.center > paddleL.center)
+             else if rg_userLup then
+              paddleL.inc_dec False
+             else if rg_userLdown then
+              paddleL.inc_dec True
+             else
+              noAction
+
+            rg_autoL := False
+            rg_userLup := False
+            rg_userLdown := False
+
+            if (rg_autoR && ball.dir) then
+              paddleR.inc_dec (ball.center > paddleR.center)
+             else if rg_userRup then
+              paddleR.inc_dec False
+             else if rg_userRdown then
+              paddleR.inc_dec True
+             else
+              noAction
+
+            rg_autoR := False
+            rg_userRup := False
+            rg_userRdown := False

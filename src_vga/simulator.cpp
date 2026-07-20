@@ -123,7 +123,8 @@ void discard_input() {
 // read VGA outputs and update graphics buffer
 void sample_pixel() {
     discard_input();
-    
+    apply_input(); // inputs are pulsed once each pixel clock
+
     coord_x = (coord_x + 1) % TOTAL_WIDTH;
 
     if(!display->h_sync && pre_h_sync){ // on negative edge of h_sync
@@ -135,7 +136,7 @@ void sample_pixel() {
     if(!display->v_sync && pre_v_sync){ // on negative edge of v_sync
         // re-sync vertical counter
         coord_y = TOP_PORCH + ACTIVE_HEIGHT + VERTICAL_SYNC;
-        apply_input(); // inputs are pulsed once each new frame
+        //apply_input(); // inputs are pulsed once each new frame
     }
 
     if(coord_x < ACTIVE_WIDTH && coord_y < ACTIVE_HEIGHT){

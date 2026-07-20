@@ -1,0 +1,6 @@
+mkFPGATopNoKbd_DE10Std.v
+PongDE10Std.qws
+db/
+incremental_db/
+c5_pin_model_dump.txt
+output_files/

@@ -6,6 +6,7 @@ VGASRCDIR=$(abspath ./src_vga)
 BUILDDIR=build
 
 SIMDIR=$(BUILDDIR)/sim
+FPGADIR=$(BUILDDIR)/fpga
 
 # -------------------------
 
@@ -14,7 +15,7 @@ default:
 	@echo 'The following targets are available:'
 	@echo
 	@echo '  sim     Creates a Verilator simulation using OpenGL'
-	@echo '  ver     Creates a Verilog module to be used in an FPGA design'
+	@echo '  fpga    Creates a Verilog module to be used in an FPGA design'
 	@echo '  clean   Removes the build directory'
 	@echo
 
@@ -60,3 +61,22 @@ sim.exe:
 	 )
 	ln -s $(BUILDDIR)/sim/ver_objdir/Vdisplay sim.exe
 	chmod u+x sim.exe
+
+# -------------------------
+
+.PHONY: fpga
+fpga:
+	mkdir -p $(FPGADIR)/bsc_objdir
+	(cd $(FPGADIR) ; \
+	    $(BSC) \
+		-u \
+		-verilog \
+		-bdir bsc_objdir \
+		-vdir . \
+		-info-dir . \
+		-p $(BSCSRCDIR):+ \
+		$(BSCSRCDIR)/FPGATopNoKbd_DE10Std.bs \
+		)
+	cp $(FPGADIR)/mkFPGATopNoKbd_DE10Std.v src_de10std/
+
+# -------------------------

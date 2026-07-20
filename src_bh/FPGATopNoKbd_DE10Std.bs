@@ -1,0 +1,97 @@
+package FPGATopNoKbd_DE10Std(mkFPGATopNoKbd_DE10Std, FPGAIfc(..)) where
+
+import Global
+import TopNoKbd
+import ControllerNoKbd
+import Switch
+import VGACore
+
+interface FPGAIfc =
+   color1 :: Bool -> Action {-# prefix = "", arg_names = [ "color1" ] #-}
+   color2 :: Bool -> Action {-# prefix = "", arg_names = [ "color2" ] #-}
+
+   autoL     :: Bool -> Action {-# prefix = "", arg_names = [ "autoL" ] #-}
+   userLup   :: Bool -> Action {-# prefix = "", arg_names = [ "userLup" ] #-}
+   userLdown :: Bool -> Action {-# prefix = "", arg_names = [ "userLdown" ] #-}
+
+   autoR     :: Bool -> Action {-# prefix = "", arg_names = [ "autoR" ] #-}
+   userRup   :: Bool -> Action {-# prefix = "", arg_names = [ "userRup" ] #-}
+   userRdown :: Bool -> Action {-# prefix = "", arg_names = [ "userRdown" ] #-}
+
+   vga_r :: Bit 8
+   vga_g :: Bit 8
+   vga_b :: Bit 8
+   vga_hs :: Bit 1
+   vga_vs :: Bit 1
+   vga_blank_n :: Bit 1
+
+{-# verilog mkFPGATopNoKbd_DE10Std { noReady, alwaysEnabled } #-}
+mkFPGATopNoKbd_DE10Std :: Module FPGAIfc
+mkFPGATopNoKbd_DE10Std =
+  module
+
+    (raw_swColor1, swColor1) :: (RawSwitch, Switch) <- mkSwitch
+    (raw_swColor2, swColor2) :: (RawSwitch, Switch) <- mkSwitch
+
+    (raw_swAutoL, swAutoL) :: (RawSwitch, Switch) <- mkSwitch
+    (raw_swUserLup, swUserLup) :: (RawSwitch, Switch) <- mkSwitch
+    (raw_swUserLdown, swUserLdown) :: (RawSwitch, Switch) <- mkSwitch
+
+    (raw_swAutoR, swAutoR) :: (RawSwitch, Switch) <- mkSwitch
+    (raw_swUserRup, swUserRup) :: (RawSwitch, Switch) <- mkSwitch
+    (raw_swUserRdown, swUserRdown) :: (RawSwitch, Switch) <- mkSwitch
+
+    top :: TopNoKbdIfc XCoord YCoord <- mkTopNoKbd
+
+    vgaCore :: VGACore XCoord YCoord <- mkVGACore preScale vgaTiming
+
+    let hPos_eol = fromInteger vgaTiming.h.activeSize
+        vPos_eof = fromInteger vgaTiming.v.activeSize
+        vga_visible = (vgaCore.hPos < hPos_eol) && (vgaCore.vPos < vPos_eof)
+
+    interface
+      color1 = raw_swColor1.input
+      color2 = raw_swColor2.input
+
+      autoL = raw_swAutoL.input
+      userLup = raw_swUserLup.input
+      userLdown = raw_swUserLdown.input
+
+      autoR = raw_swAutoR.input
+      userRup = raw_swUserRup.input
+      userRdown = raw_swUserRdown.input
+
+      vga_r = zeroExtend top.red
+      vga_g = zeroExtend top.green
+      vga_b = zeroExtend top.blue
+      vga_hs = pack vgaCore.not_hsync
+      vga_vs = pack vgaCore.not_vsync
+      vga_blank_n = pack vga_visible
+
+    rules
+      {-# ASSERT fire when enabled #-}
+      "Tick":
+       when vgaCore.frameTick ==>
+         action
+           top.frameTick
+
+      {-# ASSERT no implicit conditions #-}
+      {-# ASSERT fire when enabled #-}
+      "Connect switches":
+       when True ==>
+         action
+           top.color1 swColor1.value
+           top.color2 swColor2.value
+           top.controller.autoL swAutoL.value
+           top.controller.userLup swUserLup.value
+           top.controller.userLdown swUserLdown.value
+           top.controller.autoR swAutoR.value
+           top.controller.userRup swUserRup.value
+           top.controller.userRdown swUserRdown.value
+
+      {-# ASSERT no implicit conditions #-}
+      {-# ASSERT fire when enabled #-}
+      "Connect coords":
+       when True ==>
+         action
+           top.coords vgaCore.hPos vgaCore.vPos

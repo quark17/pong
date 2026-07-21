@@ -47,7 +47,9 @@ mkFPGATopNoKbd_DE10Std =
 
     let hPos_eol = fromInteger vgaTiming.h.activeSize
         vPos_eof = fromInteger vgaTiming.v.activeSize
+
         vga_visible = (vgaCore.hPos < hPos_eol) && (vgaCore.vPos < vPos_eof)
+        mkVGAColor c = if vga_visible then c ++ 0 else 0
 
     interface
       color1 = raw_swColor1.input
@@ -61,9 +63,9 @@ mkFPGATopNoKbd_DE10Std =
       userRup = raw_swUserRup.input
       userRdown = raw_swUserRdown.input
 
-      vga_r = zeroExtend top.red
-      vga_g = zeroExtend top.green
-      vga_b = zeroExtend top.blue
+      vga_r = mkVGAColor top.red
+      vga_g = mkVGAColor top.green
+      vga_b = mkVGAColor top.blue
       vga_hs = pack vgaCore.not_hsync
       vga_vs = pack vgaCore.not_vsync
       vga_blank_n = pack vga_visible

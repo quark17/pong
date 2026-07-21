@@ -52,13 +52,17 @@ mkControllerNoKbd paddleL paddleR ball =
 
     rules
        "Delay":
-        when True ==>
+        when (repeat /= 0) ==>
           action
-            repeat := if repeat == 0 then 110000 else repeat - 1
+            repeat := repeat - 1
 
        "Act":
         when (repeat == 0) ==>
           action
+            -- If this rule is blocked by a frame tick, don't miss
+            -- the chance to act, just wait until the next cycle
+            repeat := 110000
+
             if (rg_autoL && not ball.dir) then
               paddleL.inc_dec (ball.center > paddleL.center)
              else if rg_userLup then

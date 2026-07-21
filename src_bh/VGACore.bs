@@ -126,8 +126,6 @@ mkVGACore preScale vt = do
     not_hsyncR :: Reg Bool <- mkReg True
     not_vsyncR :: Reg Bool <- mkReg True
 
-    scale :: Reg (Bit 4) <- mkReg 0
-
     let
         hSize = fromInteger vt.h.activeSize
         vSize = fromInteger vt.v.activeSize
@@ -144,20 +142,28 @@ mkVGACore preScale vt = do
         hTickExternal = hPosR == hSize + 1
         vTickExternal = hTickExternal && vPosR == vSize + 1
 
+    hclkTick :: Bool <-
+        if (preScale /= 1) then do
+          scale :: Reg (Bit 4) <- mkReg 0
+          addRules $
+            rules
+              {-# ASSERT no implicit conditions #-}
+              {-# ASSERT fire when enabled #-}
+              "tick":
+                  when True ==>
+                  action
+                    scale := if scale == 0 then fromInteger (preScale - 1)
+                                           else scale - 1
+          return (scale == 0);
+        else
+          return True
 
     addRules $
         rules
           {-# ASSERT no implicit conditions #-}
           {-# ASSERT fire when enabled #-}
-          "tick":
-              when preScale /= 1 ==>
-              action
-                  scale := if scale == 0 then fromInteger (preScale - 1) else scale - 1
-
-          {-# ASSERT no implicit conditions #-}
-          {-# ASSERT fire when enabled #-}
           "hclk":
-              when preScale == 1 || scale == 0 ==>
+              when hclkTick ==>
               action
                 hPosR := if hTickLocal then 0 else hPosR + 1
                 hVisible := hPosR /= hSize && (hTickLocal || hVisible)

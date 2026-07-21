@@ -1,4 +1,3 @@
-Warning (10036): Verilog HDL or VHDL warning at mkFPGATopNoKbd_DE10Std.v(680): object "vgaCore_scale" assigned a value but never read File: /home/quark/git-dev/pong/src_de10std/mkFPGATopNoKbd_DE10Std.v Line: 680
 Warning (13039): The following bidirectional pins have no drivers
 Warning (13024): Output pins are stuck at VCC or GND
 Warning (21074): Design contains 6 input pin(s) that do not drive logic

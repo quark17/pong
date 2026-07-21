@@ -49,7 +49,9 @@ module Top(
 //=======================================================
 
    reg						clk_25;
-   wire						rstn_25;
+   reg						rstn_25;
+
+   reg [3:0]					cnt_rstn_25;
 
 
 //=======================================================
@@ -66,7 +68,19 @@ module Top(
       clk_25 <= ~ clk_25;
    end
 
-   assign rstn_25 = 1;
+   initial begin
+      rstn_25 <= 1'b1;
+      cnt_rstn_25 <= 4'd0;
+   end
+   always @(posedge clk_25) begin
+      if (cnt_rstn_25 < 4'd10) begin
+	 rstn_25 <= 1'b0;
+	 cnt_rstn_25 <= cnt_rstn_25 + 4'd1;
+      end
+      else begin
+	 rstn_25 <= 1'b1;
+      end
+   end
 
    assign LEDR = 0;
 

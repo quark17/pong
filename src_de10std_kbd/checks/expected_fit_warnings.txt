@@ -1,0 +1,3 @@
+Warning (292013): Feature LogicLock is only available with a valid subscription license. You can purchase a software subscription to gain full access to this feature.
+Warning (15714): Some pins have incomplete I/O assignments. Refer to the I/O Assignment Warnings report for details
+Warning (169064): Following 4 pins have no output enable or a GND or VCC output enable - later changes to this connectivity may change fitting results

@@ -1,0 +1,75 @@
+package FPGATop_DE10Std(mkFPGATop_DE10Std, FPGAIfc(..)) where
+
+import Global
+import Top
+import Kbd
+import Switch
+import VGACore
+
+interface FPGAIfc =
+   color1 :: Bool -> Action {-# prefix = "", arg_names = [ "color1" ] #-}
+   color2 :: Bool -> Action {-# prefix = "", arg_names = [ "color2" ] #-}
+
+   kbclk  :: Bool -> Action {-# prefix = "", arg_names = [ "kbclk" ] #-}
+   kbdata :: Bool -> Action {-# prefix = "", arg_names = [ "kbdata" ] #-}
+
+   vga_r :: Bit 8
+   vga_g :: Bit 8
+   vga_b :: Bit 8
+   vga_hs :: Bit 1
+   vga_vs :: Bit 1
+   vga_blank_n :: Bit 1
+
+{-# verilog mkFPGATop_DE10Std { noReady, alwaysEnabled } #-}
+mkFPGATop_DE10Std :: Module FPGAIfc
+mkFPGATop_DE10Std =
+  module
+
+    (raw_swColor1, swColor1) :: (RawSwitch, Switch) <- mkSwitch
+    (raw_swColor2, swColor2) :: (RawSwitch, Switch) <- mkSwitch
+
+    top :: TopIfc XCoord YCoord <- mkTop
+
+    vgaCore :: VGACore XCoord YCoord <- mkVGACore preScale vgaTiming
+
+    let hPos_eol = fromInteger vgaTiming.h.activeSize
+        vPos_eof = fromInteger vgaTiming.v.activeSize
+
+        vga_visible = (vgaCore.hPos < hPos_eol) && (vgaCore.vPos < vPos_eof)
+        mkVGAColor c = if vga_visible then c ++ 0 else 0
+
+    interface
+      color1 = raw_swColor1.input
+      color2 = raw_swColor2.input
+
+      kbclk = top.rawkbd.kbclk
+      kbdata = top.rawkbd.kbdata
+
+      vga_r = mkVGAColor top.red
+      vga_g = mkVGAColor top.green
+      vga_b = mkVGAColor top.blue
+      vga_hs = pack vgaCore.not_hsync
+      vga_vs = pack vgaCore.not_vsync
+      vga_blank_n = pack vga_visible
+
+    rules
+      {-# ASSERT fire when enabled #-}
+      "Tick":
+       when vgaCore.frameTick ==>
+         action
+           top.frameTick
+
+      {-# ASSERT no implicit conditions #-}
+      {-# ASSERT fire when enabled #-}
+      "Connect switches":
+       when True ==>
+         action
+           top.color1 swColor1.value
+           top.color2 swColor2.value
+
+      {-# ASSERT no implicit conditions #-}
+      {-# ASSERT fire when enabled #-}
+      "Connect coords":
+       when True ==>
+         action
+           top.coords vgaCore.hPos vgaCore.vPos

@@ -10,6 +10,7 @@ BSVFPGADIR=$(BUILDDIR)/bsv_fpga
 
 BHSIMDIR=$(BUILDDIR)/bh_sim
 BHFPGADIR=$(BUILDDIR)/bh_fpga
+BHFPGAKBDDIR=$(BUILDDIR)/bh_fpga_kbd
 
 # -------------------------
 
@@ -17,12 +18,13 @@ BHFPGADIR=$(BUILDDIR)/bh_fpga
 default:
 	@echo 'The following targets are available:'
 	@echo
-	@echo '  bsv_fpga   Creates a Verilog module to be used in an FPGA design'
+	@echo '  bsv_fpga     Creates a Verilog module to be used in an FPGA design'
 	@echo
-	@echo '  bh_sim     Creates a Verilator simulation using OpenGL'
-	@echo '  bh_fpga    Creates a Verilog module to be used in an FPGA design'
+	@echo '  bh_sim       Creates a Verilator simulation using OpenGL'
+	@echo '  bh_fpga      Creates a Verilog module to be used in an FPGA design'
+	@echo '  bh_fpga_kbd  Creates a Verilog module to be used in an FPGA design'
 	@echo
-	@echo '  clean      Removes the build directory'
+	@echo '  clean        Removes the build directory'
 	@echo
 
 # -------------------------
@@ -30,7 +32,7 @@ default:
 .PHONY: clean
 clean:
 	$(RM) -rf $(BUILDDIR)
-	$(RM) -f sim.exe
+	$(RM) -f bh_sim.exe
 
 # -------------------------
 
@@ -84,6 +86,23 @@ bh_fpga:
 		$(BHSRCDIR)/FPGATopNoKbd_DE10Std.bs \
 		)
 	cp $(BHFPGADIR)/mkFPGATopNoKbd_DE10Std.v src_de10std/
+
+# -------------------------
+
+.PHONY: bh_fpga_kbd
+bh_fpga_kbd:
+	mkdir -p $(BHFPGAKBDDIR)/bsc_objdir
+	(cd $(BHFPGAKBDDIR) ; \
+	    $(BSC) \
+		-u \
+		-verilog \
+		-bdir bsc_objdir \
+		-vdir . \
+		-info-dir . \
+		-p $(BHSRCDIR):+ \
+		$(BHSRCDIR)/FPGATop_DE10Std.bs \
+		)
+	cp $(BHFPGAKBDDIR)/mkFPGATop_DE10Std.v src_de10std_kbd/
 
 # -------------------------
 

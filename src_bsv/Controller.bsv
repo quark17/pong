@@ -70,11 +70,15 @@ module mkController#(parameter Kbd kbd,
   endrule
 
 
-  rule rule2Controller (True);
-    repeatit <= (repeatit== 0 ? 110000 : repeatit- 1);
+  rule rule2Controller (repeatit != 0);
+    repeatit <= repeatit- 1;
   endrule
 
   rule rule3Controller (repeatit== 0);
+      // If this rule is blocked by a frame tick, don't miss
+      // the chance to act, just wait until the next cycle
+      repeatit <= 110000;
+
       if (doL)
         begin
 	  paddleL.inc_dec(upL);

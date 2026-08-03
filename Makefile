@@ -1,12 +1,15 @@
 BSC?=bsc
 
-BSCSRCDIR=$(abspath ./src_bh)
+BSVSRCDIR=$(abspath ./src_bsv)
+BHSRCDIR=$(abspath ./src_bh)
 VGASRCDIR=$(abspath ./src_vga)
 
 BUILDDIR=build
 
-SIMDIR=$(BUILDDIR)/sim
-FPGADIR=$(BUILDDIR)/fpga
+BSVFPGADIR=$(BUILDDIR)/bsv_fpga
+
+BHSIMDIR=$(BUILDDIR)/bh_sim
+BHFPGADIR=$(BUILDDIR)/bh_fpga
 
 # -------------------------
 
@@ -14,9 +17,12 @@ FPGADIR=$(BUILDDIR)/fpga
 default:
 	@echo 'The following targets are available:'
 	@echo
-	@echo '  sim     Creates a Verilator simulation using OpenGL'
-	@echo '  fpga    Creates a Verilog module to be used in an FPGA design'
-	@echo '  clean   Removes the build directory'
+	@echo '  bsv_fpga   Creates a Verilog module to be used in an FPGA design'
+	@echo
+	@echo '  bh_sim     Creates a Verilator simulation using OpenGL'
+	@echo '  bh_fpga    Creates a Verilog module to be used in an FPGA design'
+	@echo
+	@echo '  clean      Removes the build directory'
 	@echo
 
 # -------------------------
@@ -28,11 +34,11 @@ clean:
 
 # -------------------------
 
-.PHONY: sim
-sim: sim.exe
+.PHONY: bh_sim
+bh_sim: sim.exe
 
-sim.exe:
-	mkdir -p $(SIMDIR)/bsc_objdir
+bh_sim.exe:
+	mkdir -p $(BHSIMDIR)/bsc_objdir
 	(cd $(BUILDDIR)/sim ; \
 	    $(BSC) \
 		-u \
@@ -40,8 +46,8 @@ sim.exe:
 		-bdir bsc_objdir \
 		-vdir . \
 		-info-dir . \
-		-p $(BSCSRCDIR):+ \
-		$(BSCSRCDIR)/SimTop.bs \
+		-p $(BHSRCDIR):+ \
+		$(BHSRCDIR)/SimTop.bs \
 		)
 	(cd $(BUILDDIR)/sim ; \
 	verilator --cc --exe \
@@ -59,24 +65,43 @@ sim.exe:
 	(cd $(BUILDDIR)/sim/ver_objdir ; \
 	 make -j -f Vdisplay.mk Vdisplay \
 	 )
-	ln -s $(BUILDDIR)/sim/ver_objdir/Vdisplay sim.exe
-	chmod u+x sim.exe
+	ln -s $(BUILDDIR)/sim/ver_objdir/Vdisplay $@
+	chmod u+x $@
 
 # -------------------------
 
-.PHONY: fpga
-fpga:
-	mkdir -p $(FPGADIR)/bsc_objdir
-	(cd $(FPGADIR) ; \
+.PHONY: bh_fpga
+bh_fpga:
+	mkdir -p $(BHFPGADIR)/bsc_objdir
+	(cd $(BHFPGADIR) ; \
 	    $(BSC) \
 		-u \
 		-verilog \
 		-bdir bsc_objdir \
 		-vdir . \
 		-info-dir . \
-		-p $(BSCSRCDIR):+ \
-		$(BSCSRCDIR)/FPGATopNoKbd_DE10Std.bs \
+		-p $(BHSRCDIR):+ \
+		$(BHSRCDIR)/FPGATopNoKbd_DE10Std.bs \
 		)
-	cp $(FPGADIR)/mkFPGATopNoKbd_DE10Std.v src_de10std/
+	cp $(BHFPGADIR)/mkFPGATopNoKbd_DE10Std.v src_de10std/
+
+# -------------------------
+
+.PHONY: bsv_fpga
+bsv_fpga:
+	cp $(BSVSRCDIR)/TopLevel0.bsv $(BSVSRCDIR)/TopLevel.bsv
+	cp $(BSVSRCDIR)/Ball0.bsv $(BSVSRCDIR)/Ball.bsv
+	#cp $(BSVSRCDIR)/Island0.bsv $(BSVSRCDIR)/Island.bsv
+	mkdir -p $(BSVFPGADIR)/bsc_objdir
+	(cd $(BSVFPGADIR) ; \
+	    $(BSC) \
+		-u \
+		-verilog \
+		-bdir bsc_objdir \
+		-vdir . \
+		-info-dir . \
+		-p $(BSVSRCDIR):+ \
+		$(BSVSRCDIR)/TopLevel.bsv \
+		)
 
 # -------------------------

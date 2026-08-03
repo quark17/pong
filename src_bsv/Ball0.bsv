@@ -1,11 +1,8 @@
 import StmtFSM  ::*;
 import Global   ::*;
 import Paddle   ::*;
-import Border   ::*;
 import Shape    ::*;
-import Color::*;
-//import List::*;
-import Vector::*;
+import Color    ::*;
 
 typedef Tuple5#(Bool, Bool, Bool, Bool, YSize) PaddleInsideTyp;
 

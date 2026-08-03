@@ -2,7 +2,6 @@ import List::*;
 import LFSR::*;
 import VGACore::*;
 import Global::*;
-import LedDecoder::*;
 import Controller::*;
 import KbdV::*;
 import Switch::*;
@@ -15,7 +14,6 @@ import Color::*;
 import Decimal::*;
 
 import ConfigReg::*;
-import SVA::*;
 import AssertionWires::*;
 
 interface TopLevel;

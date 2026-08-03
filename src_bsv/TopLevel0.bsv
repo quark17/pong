@@ -174,6 +174,8 @@ module [AssertModule] mkTopLevelBSV(TopLevelBSV);
 endmodule: mkTopLevelBSV
 
 (* synthesize, always_ready, always_enabled *)
+(* descending_urgency="the_dut_ecs_the_controller_rule3Controller,the_dut_ecs_the_paddleL_rule1Paddle" *)
+(* descending_urgency="the_dut_ecs_the_controller_rule3Controller,the_dut_ecs_the_paddleR_rule1Paddle" *)
 module [Module] mkTopLevel(TopLevel);
    Tuple2#(AssertionWires#(7), TopLevelBSV) awires_dut();
    exposeAssertionWires#(mkTopLevelBSV) the_dut(awires_dut);

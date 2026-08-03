@@ -116,8 +116,6 @@ module mkVGACore#(Integer preScale, VGATiming vt)(VGACore#(hCoord, vCoord))
     mkReg#(True) the_not_hsyncR(not_hsyncR);
     Reg#(Bool) not_vsyncR();
     mkReg#(True) the_not_vsyncR(not_vsyncR);
-    Reg#(Bit#(4)) scale();
-    mkReg#(0) the_scale(scale);
 
     hCoord hSize;
     vCoord vSize;
@@ -145,13 +143,22 @@ module mkVGACore#(Integer preScale, VGATiming vt)(VGACore#(hCoord, vCoord))
     hTickExternal =  hPosR == (hSize + 1);
     vTickExternal =  hTickExternal && (vPosR == (vSize + 1));
 
-    (* no_implicit_conditions, fire_when_enabled *)
-    rule tick (preScale != 1);
-        scale <= (scale == 0 ? fromInteger(preScale - 1) : scale - 1);
-    endrule: tick
+    Bool hclkTick;
+    if (preScale != 1) begin
+        Reg#(Bit#(4)) scale <- mkReg(0);
+
+        (* no_implicit_conditions, fire_when_enabled *)
+        rule tick;
+            scale <= (scale == 0 ? fromInteger(preScale - 1) : scale - 1);
+        endrule: tick
+
+        hclkTick = (scale == 0);
+    end
+    else
+        hclkTick = True;
 
     (* no_implicit_conditions, fire_when_enabled *)
-    rule hclk ((preScale == 1) || (scale == 0));
+    rule hclk (hclkTick);
         hPosR <= (hTickLocal ? 0 : hPosR + 1);
         hVisible <= ((hPosR != hSize) && (hTickLocal || hVisible));
     endrule: hclk

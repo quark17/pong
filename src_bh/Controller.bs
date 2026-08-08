@@ -4,7 +4,6 @@ import Kbd
 import GetPut
 import Paddle
 import Ball
-import Ball
 
 interface Controller =
     autoPlayL :: Bool
@@ -75,13 +74,16 @@ mkController kbd paddleL paddleR ball =
 
 
        "Delay":
-        when True ==>
+        when (repeat /= 0) ==>
           action
-            repeat := if repeat == 0 then 110000 else repeat - 1
+            repeat := repeat - 1
 
        "Act":
         when (repeat == 0) ==>
           action
+            -- If this rule is blocked by a frame tick, don't miss
+            -- the chance to act, just wait until the next cycle
+            repeat := 110000
 
             if doL then
               paddleL.inc_dec upL

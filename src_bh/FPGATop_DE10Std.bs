@@ -12,6 +12,7 @@ interface FPGAIfc =
 
    kbclk  :: Bool -> Action {-# prefix = "", arg_names = [ "kbclk" ] #-}
    kbdata :: Bool -> Action {-# prefix = "", arg_names = [ "kbdata" ] #-}
+   key :: Bit 8
 
    vga_r :: Bit 8
    vga_g :: Bit 8
@@ -44,6 +45,8 @@ mkFPGATop_DE10Std =
 
       kbclk = top.rawkbd.kbclk
       kbdata = top.rawkbd.kbdata
+
+      key = top.rawkbd.key
 
       vga_r = mkVGAColor top.red
       vga_g = mkVGAColor top.green

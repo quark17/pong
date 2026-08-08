@@ -53,10 +53,33 @@ module Top(
 
    reg [3:0]					cnt_rstn_25;
 
+   wire [7:0]					key;
+
 
 //=======================================================
 //  Structural coding
 //=======================================================
+
+   function [6:0] hex_to_sseg(input [3:0] x);
+      case (x)
+        4'h0 : hex_to_sseg = 7'b1000000;
+        4'h1 : hex_to_sseg = 7'b1111001;
+        4'h2 : hex_to_sseg = 7'b0100100;
+        4'h3 : hex_to_sseg = 7'b0110000;
+        4'h4 : hex_to_sseg = 7'b0011001;
+        4'h5 : hex_to_sseg = 7'b0010010;
+        4'h6 : hex_to_sseg = 7'b0000010;
+        4'h7 : hex_to_sseg = 7'b1111000;
+        4'h8 : hex_to_sseg = 7'b0000000;
+        4'h9 : hex_to_sseg = 7'b0011000;
+        4'hA : hex_to_sseg = 7'b0001000;
+        4'hB : hex_to_sseg = 7'b0000011;
+        4'hC : hex_to_sseg = 7'b1000110;
+        4'hD : hex_to_sseg = 7'b0100001;
+        4'hE : hex_to_sseg = 7'b0000110;
+        4'hF : hex_to_sseg = 7'b0001110;
+      endcase
+   endfunction
 
 //   SyncReset clk25_reset_sync (
 //     .IN_RST(key_reset),
@@ -84,8 +107,8 @@ module Top(
 
    assign LEDR = 0;
 
-   assign HEX0 = 7'b1111111;
-   assign HEX1 = 7'b1111111;
+   assign HEX0 = hex_to_sseg(key[3:0]);
+   assign HEX1 = hex_to_sseg(key[7:4]);
    assign HEX2 = 7'b1111111;
    assign HEX3 = 7'b1111111;
    assign HEX4 = 7'b1111111;
@@ -103,6 +126,7 @@ module Top(
 
 			  .kbclk(PS2_CLK),
 			  .kbdata(PS2_DAT),
+			  .key(key),
 
 			  .vga_r(VGA_R),
 			  .vga_g(VGA_G),

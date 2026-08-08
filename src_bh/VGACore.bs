@@ -16,7 +16,8 @@
 
 package VGACore(
         VGATiming(..), VGAHVTiming(..),
-        vga640x480, vga1280x480, sizeToTiming, hzToTiming,
+        vga640x480, vga1280x480, vga1024x768,
+        sizeToTiming, hzToTiming,
         mkVGACore, VGACore(..)
         ) where
 
@@ -36,6 +37,7 @@ struct VGATiming =
 -- 640  650  710  762    480  482  488  500
 -- 800  812  888  952    600  602  610  626
 
+-- 25 MHz pixel clock
 vga640x480 :: VGATiming
 vga640x480 =
     VGATiming {
@@ -43,11 +45,20 @@ vga640x480 =
         v = VGAHVTiming { activeSize = 480; syncStart = 490; syncEnd = 494; totalSize = 526 };
     }
 
+-- ?? Mhz pixel clock?
 vga1280x480 :: VGATiming
 vga1280x480 =
     VGATiming {
-        h = VGAHVTiming { activeSize = 1280; syncStart =1328; syncEnd = 1520; totalSize = 1600 };
+        h = VGAHVTiming { activeSize = 1280; syncStart = 1328; syncEnd = 1520; totalSize = 1600 };
         v = VGAHVTiming { activeSize = 480; syncStart = 490; syncEnd = 494; totalSize = 526 };
+    }
+
+-- 65 MHz pixel clock (but we use 64?)
+vga1024x768 :: VGATiming
+vga1024x768 =
+    VGATiming {
+        h = VGAHVTiming { activeSize = 1024; syncStart = 1047; syncEnd = 1183; totalSize = 1343 };
+        v = VGAHVTiming { activeSize = 768; syncStart = 770; syncEnd = 776; totalSize = 805 };
     }
 
 

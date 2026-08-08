@@ -48,11 +48,21 @@ module Top(
 //  REG/WIRE declarations
 //=======================================================
 
+   reg						rstn_50;
+   reg [3:0]					cnt_rstn_50;
+
+   /*
    reg						clk_25;
    reg						rstn_25;
-
    reg [3:0]					cnt_rstn_25;
+    */
 
+   reg						clk_64;
+   reg						rstn_64;
+   reg [3:0]					cnt_rstn_64;
+
+   wire						vga_clk;
+   wire						vga_rstn;
 
 //=======================================================
 //  Structural coding
@@ -64,6 +74,20 @@ module Top(
 //     .OUT_RST(rstn_25)
 //   );
 
+   initial begin
+      rstn_50 <= 1'b1;
+   end
+   always @(posedge CLOCK_50) begin
+      if (cnt_rstn_50 < 4'd10) begin
+	 rstn_50 <= 1'b0;
+	 cnt_rstn_50 <= cnt_rstn_50 + 4'd1;
+      end
+      else begin
+	 rstn_50 <= 1'b1;
+      end
+   end
+
+   /*
    always @(posedge CLOCK_50) begin
       clk_25 <= ~ clk_25;
    end
@@ -81,6 +105,29 @@ module Top(
 	 rstn_25 <= 1'b1;
       end
    end
+    */
+
+   pll64 pll64_inst (.refclk(CLOCK_50),
+		     .rst(~ rstn_50),
+		     .outclk_0(clk_64)
+		     );
+
+   initial begin
+      rstn_64 <= 1'b1;
+      cnt_rstn_64 <= 4'd0;
+   end
+   always @(posedge clk_64) begin
+      if (cnt_rstn_64 < 4'd10) begin
+	 rstn_64 <= 1'b0;
+	 cnt_rstn_64 <= cnt_rstn_64 + 4'd1;
+      end
+      else begin
+	 rstn_64 <= 1'b1;
+      end
+   end
+
+   assign vga_clk = clk_64;
+   assign vga_rstn = rstn_64;
 
    assign LEDR = 0;
 
@@ -91,12 +138,12 @@ module Top(
    assign HEX4 = 7'b1111111;
    assign HEX5 = 7'b1111111;
 
-   assign VGA_CLK = ~ clk_25;
+   assign VGA_CLK = ~ vga_clk;
    assign VGA_SYNC_N = 1;
 
    mkFPGATopNoKbd_DE10Std pong(
-			       .CLK(clk_25),
-			       .RST_N(rstn_25),
+			       .CLK(vga_clk),
+			       .RST_N(vga_rstn),
 
 			       .color1(SW[0:0]),
 			       .color2(SW[1:1]),

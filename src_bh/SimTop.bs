@@ -51,7 +51,7 @@ graphics =
       rgb = let r = top.red[0:0] | top.red[1:1]
                 g = top.green[0:0] | top.green[1:1]
                 b = top.blue[0:0] | top.blue[1:1]
-            in r ++ g ++ b
+            in b ++ g ++ r
 
     rules
       "TieOff":

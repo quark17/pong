@@ -37,21 +37,23 @@ clean:
 # -------------------------
 
 .PHONY: bh_sim
-bh_sim: sim.exe
+bh_sim: bh_sim.exe
 
 bh_sim.exe:
 	mkdir -p $(BHSIMDIR)/bsc_objdir
-	(cd $(BUILDDIR)/sim ; \
+	(cd $(BHSIMDIR) ; \
 	    $(BSC) \
 		-u \
+		-cpp \
 		-verilog \
 		-bdir bsc_objdir \
 		-vdir . \
 		-info-dir . \
 		-p $(BHSRCDIR):+ \
+		-Xcpp -DVGA_SMALL \
 		$(BHSRCDIR)/SimTop.bs \
 		)
-	(cd $(BUILDDIR)/sim ; \
+	(cd $(BHSIMDIR) ; \
 	verilator --cc --exe \
 		-Mdir ver_objdir \
 		$(VGASRCDIR)/simulator.cpp \
@@ -64,10 +66,10 @@ bh_sim.exe:
 		-Wno-TIMESCALEMOD \
 		--timing \
 		)
-	(cd $(BUILDDIR)/sim/ver_objdir ; \
+	(cd $(BHSIMDIR)/ver_objdir ; \
 	 make -j -f Vdisplay.mk Vdisplay \
 	 )
-	ln -s $(BUILDDIR)/sim/ver_objdir/Vdisplay $@
+	ln -s $(BHSIMDIR)/ver_objdir/Vdisplay $@
 	chmod u+x $@
 
 # -------------------------
@@ -78,6 +80,7 @@ bh_fpga:
 	(cd $(BHFPGADIR) ; \
 	    $(BSC) \
 		-u \
+		-cpp \
 		-verilog \
 		-bdir bsc_objdir \
 		-vdir . \
@@ -95,6 +98,7 @@ bh_fpga_kbd:
 	(cd $(BHFPGAKBDDIR) ; \
 	    $(BSC) \
 		-u \
+		-cpp \
 		-verilog \
 		-bdir bsc_objdir \
 		-vdir . \
@@ -115,6 +119,7 @@ bsv_fpga:
 	(cd $(BSVFPGADIR) ; \
 	    $(BSC) \
 		-u \
+		-cpp \
 		-verilog \
 		-bdir bsc_objdir \
 		-vdir . \

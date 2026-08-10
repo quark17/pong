@@ -53,9 +53,12 @@ scoreY :: Integer
 scoreY = 30
 
 vgaTiming :: VGATiming
---vgaTiming = vga640x480
---vgaTiming = vga1280x480
+#ifdef VGA_SMALL
+vgaTiming = vga640x480
+#else
 vgaTiming = vga1024x768
+#endif
+--vgaTiming = vga1280x480
 --vgaTiming = sizeToTiming hSize vSize
 --vgaTiming = hzToTiming 50000000
 

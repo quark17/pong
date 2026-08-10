@@ -6,11 +6,17 @@ import Global
 import ControllerNoKbd
 import Border
 import Paddle
-import Ball
 import Shape
 import Score
 import Color
 import Decimal
+
+#ifdef VER1
+import Island1
+import Ball1
+#else
+import Ball
+#endif
 
 interface TopNoKbdIfc hCoord vCoord =
    color1 :: Bool -> Action
@@ -48,7 +54,12 @@ mkTopNoKbd =
     border :: Shape <- mkBorder
     paddleL :: Paddle <- mkPaddle paddleLXMin
     paddleR :: Paddle <- mkPaddle paddleRXMin
+#ifdef VER1
+    island :: Island <- mkIsland
+    ball :: Ball <- mkBall lfsr.value paddleL paddleR island scoreL.inc scoreR.inc
+#else
     ball :: Ball <- mkBall lfsr.value paddleL paddleR scoreL.inc scoreR.inc
+#endif
 
     controller :: ControllerNoKbd <- mkControllerNoKbd paddleL paddleR ball
 
@@ -60,7 +71,13 @@ mkTopNoKbd =
         padR = flipCol cYellow controller.autoPlayR paddleR.shape
         border' = flipCol (mkRGB 2 0 1) rg_color1 border
         ball' = flipCol (mkRGB 1 1 3) rg_color1 ball.shape
-        pict = joinManyShapes (border' :> ball' :> padL :> padR :> dispL :> dispR :> Nil)
+#ifdef VER1
+        pict = joinManyShapes (border' :> ball' :> padL :> padR :>
+                               dispL :> dispR :> island.shape :> Nil)
+#else
+        pict = joinManyShapes (border' :> ball' :> padL :> padR :>
+                               dispL :> dispR :> Nil)
+#endif
         pictBl = flipBCol cWhite rg_color2 pict
 
     interface

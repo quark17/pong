@@ -5,7 +5,11 @@ package ControllerNoKbd (
         ) where
 
 import Paddle
+#ifdef VER1
+import Ball1
+#else
 import Ball
+#endif
 
 interface ControllerNoKbd_In =
    autoL     :: Bool -> Action

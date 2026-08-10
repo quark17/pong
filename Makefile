@@ -39,7 +39,7 @@ clean:
 .PHONY: bh_sim
 bh_sim: bh_sim.exe
 
-bh_sim.exe:
+bh_sim.exe: $(wildcard $(BHSRCDIR)/*) $(wildcard $(VGASRCDIR)/*)
 	mkdir -p $(BHSIMDIR)/bsc_objdir
 	(cd $(BHSIMDIR) ; \
 	    $(BSC) \
@@ -51,6 +51,7 @@ bh_sim.exe:
 		-info-dir . \
 		-p $(BHSRCDIR):+ \
 		-Xcpp -DVGA_SMALL \
+		-Xcpp -DVER1 \
 		$(BHSRCDIR)/SimTop.bs \
 		)
 	(cd $(BHSIMDIR) ; \
@@ -69,7 +70,7 @@ bh_sim.exe:
 	(cd $(BHSIMDIR)/ver_objdir ; \
 	 make -j -f Vdisplay.mk Vdisplay \
 	 )
-	ln -s $(BHSIMDIR)/ver_objdir/Vdisplay $@
+	ln -sf $(BHSIMDIR)/ver_objdir/Vdisplay $@
 	chmod u+x $@
 
 # -------------------------

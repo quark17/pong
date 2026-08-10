@@ -51,7 +51,7 @@ bh_sim.exe: $(wildcard $(BHSRCDIR)/*) $(wildcard $(VGASRCDIR)/*)
 		-info-dir . \
 		-p $(BHSRCDIR):+ \
 		-Xcpp -DVGA_SMALL \
-		-Xcpp -DVER1 \
+		-Xcpp -DVER2 \
 		$(BHSRCDIR)/SimTop.bs \
 		)
 	(cd $(BHSIMDIR) ; \

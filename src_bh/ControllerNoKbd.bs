@@ -5,7 +5,7 @@ package ControllerNoKbd (
         ) where
 
 import Paddle
-#ifdef VER1
+#if defined(VER1) || defined(VER2)
 import Ball1
 #else
 import Ball

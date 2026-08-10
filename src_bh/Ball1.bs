@@ -3,7 +3,13 @@ package Ball1 (mkBall, Ball(..)) where
 import ActionSeq
 import Global
 import Paddle
+#if defined(VER1)
 import Island1
+#elif defined(VER2)
+import Island2
+#else
+#error "Ball1: Unsupported version"
+#endif
 import Shape
 import Color
 
@@ -123,13 +129,15 @@ mkBall rand paddleL paddleR island lAct rAct =
                 (c00,c01,c10,c11,cpos) = island.inside ball_x ball_x_r ball_y ball_y_b ballHeightC
 
                 -- New direction for Y
-                diry = bounce (c00 || c10) (c01 || c11) $
+                -- Computed in parts, to identify hits
+                diry_border =
+                   (ball_y <= fromInteger (yMax - ballHeight) &&  -- down if to large
+                   ((ball_y < fromInteger yMin) ||                  -- up if to small
+                    posY ball_vy))
+                diry_island = bounce (c00 || c10) (c01 || c11) diry_border
+                diry = bounce (a00 || a10) (a01 || a11) $
                        bounce (b00 || b10) (b01 || b11) $
-                       bounce (a00 || a10) (a01 || a11) $
-                       (ball_y <= fromInteger (yMax - ballHeight) &&  -- down if to large
-                       ((ball_y < fromInteger yMin) ||                  -- up if to small
-                        posY ball_vy))
-
+                       diry_island
 
                 -- New direction for X
                 -- Need to know which wall for counting points
@@ -138,15 +146,21 @@ mkBall rand paddleL paddleR island lAct rAct =
                 hitWallR = ball_x > fromInteger (xMax - ballWidth)
                 hitWallL = ball_x < fromInteger xMin
 
+                dirx_border = ( not hitWallR && ( hitWallL || posX ball_vx) )
+                dirx_island = bounce (c00 || c01) (c10 || c11) dirx_border
                 dirx = bounce (a00 || a01) (a10 || a11) $
                        bounce (b00 || b01) (b10 || b11) $
-                       bounce (c00 || c01) (c10 || c11) $
-                       ( not hitWallR && ( hitWallL || posX ball_vx) )
+                       dirx_island
 
             change_y :=      if (a00 || a01) /= (a10 || a11) then apos
                         else if (b00 || b01) /= (b10 || b11) then bpos
                         else if (c00 || c01) /= (c10 || c11) then cpos
                         else 0
+
+#ifdef VER2
+            if (diry_island /= diry_border) || (dirx_island /= dirx_border)
+              then island.hit else noAction
+#endif
 
             if hitWallR then rAct else noAction
             if hitWallL then lAct else noAction

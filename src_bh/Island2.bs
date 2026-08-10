@@ -1,0 +1,133 @@
+package Island2 (mkIsland, Island(..)) where
+
+import ActionSeq
+import Global
+import Shape
+import Color
+
+type CountType = Bit 2
+
+maxCount :: CountType
+maxCount = 1
+
+type Double = Bit 32
+type Single = Bit 16
+
+one :: Single
+one = 0x3fff
+
+-- The next function multiplies a double length integer (< 32768) by a single
+-- length number, giving the more significant half of the double-length
+-- result.  This is all more complicated than it ought to do, because the
+-- compiler primitives (for multiplication in particular) are not yet quite
+-- right.  We are working on this.
+
+mult :: Double -> Single -> Single
+mult x y = truncate (signedShiftRight (x * signExtend y) 14)
+
+islandWidthC :: XSize
+islandWidthC = fromInteger islandWidth
+
+islandHeightC :: YSize
+islandHeightC = fromInteger islandHeight
+
+islandXCentre :: Integer
+islandXCentre = (hSize - islandWidth) `div` 2
+
+islandYCentre :: Integer
+islandYCentre = (vSize - islandWidth) `div` 2 -- (vSize `div` 2) + islandHeight + paddleWidth
+
+xCentre :: Single
+xCentre = fromInteger islandXCentre
+
+yCentre :: Single
+yCentre = fromInteger islandYCentre
+
+xRad :: Double
+xRad = fromInteger islandWidth
+
+yRad :: Double
+yRad = fromInteger islandHeight
+
+interface Island =
+   shape :: Shape
+   inside :: XCoord -> XCoord -> YCoord -> YCoord -> YSize -> (Bool,Bool,Bool,Bool,YSize)
+   tick :: Action
+   hit :: Action
+
+mkIsland :: Module Island
+mkIsland =
+  module
+
+    xpos :: Reg XCoord <- mkReg (fromInteger (islandXCentre + islandWidth))
+    ypos :: Reg YCoord <- mkReg (fromInteger islandYCentre)
+
+    color :: Reg Color <- mkReg cRed
+
+    count :: Reg CountType <- mkReg maxCount
+
+    islandRect :: Shape <- mkRectangle
+                              xpos islandWidthC
+                              ypos islandHeightC
+                              color
+
+    let inside1 :: XCoord -> YCoord -> Bool
+        inside1 x y =
+              (x > xpos) &&
+              (x < xpos + islandWidthC) &&
+              (y > ypos) &&
+              (y < ypos + islandHeightC)
+
+    cos :: Reg Single <- mkReg 0x7fff  -- cos(theta), initially 1.0
+    sin :: Reg Single <- mkReg 0x0000  -- sin(theta), initially 0
+
+    ac :: Reg Single <- mkRegU
+    as :: Reg Single <- mkRegU
+    bc :: Reg Single <- mkRegU
+    bs :: Reg Single <- mkRegU
+
+    let 
+        a :: Double  -- delta = 1deg -- 2sinsq(delta/2)
+        a = 3
+
+        b :: Double  --                  sin(delta)
+        b = 286
+
+        increments :: Single
+        increments = 359   -- max-numbered increment for complete revolution
+                           -- (starting at 0)
+
+    incs :: Reg Single <- mkReg 0
+
+    let step1 = action
+                  ac := mult a cos
+                  as := mult a sin
+                  bc := mult b cos
+                  bs := mult b sin
+        step2 = action
+                  cos  := if (incs == 0) then one        else (cos - (ac + bs))
+                  sin  := if (incs == 0) then 0          else (sin - (as - bc))
+                  incs := if (incs == 0) then increments else (incs - 1)
+        step3 = action
+                  xpos := unpack (truncate (pack (xCentre + mult xRad cos)))
+                  ypos := unpack (truncate (pack (yCentre + mult yRad sin)))
+
+    -- break updating into several steps to meet timing
+    updateIsland :: ActionSeq <- actionSeq (step1 |> step2 |> step3)
+
+    interface
+      shape = islandRect
+
+      inside x0 x1 y0 y1 _ =
+          (inside1 x0 y0, inside1 x0 y1, inside1 x1 y0, inside1 x1 y1, 0)
+
+      tick = if (count == 0)
+               then action
+                      count := maxCount
+                      updateIsland.start
+               else action
+                      count := count - 1
+
+      hit = action
+              let c = pack color
+              color := unpack (c[0:0] ++ c[5:1])

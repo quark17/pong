@@ -14,7 +14,7 @@ islandLeftC :: XCoord
 islandLeftC = fromInteger ((hSize - islandWidth) `div` 2)
 
 islandLowC :: YCoord
-islandLowC = fromInteger ((vSize - islandHeight) `div` 2) -- ((vSize `div` 2) + islandHeight + paddleWidth)
+islandLowC = fromInteger ((vSize `div` 2) + islandHeight + paddleWidth)
 
 interface Island =
    shape :: Shape;
@@ -30,10 +30,10 @@ mkIsland =
 
     let inside1 :: XCoord -> YCoord -> Bool
         inside1 x y =
-              x > islandLeftC &&
-	      x < islandLeftC + islandWidthC &&
-	      y > islandLowC &&
-	      y < islandLowC + islandHeightC
+              (x > islandLeftC) &&
+              (x < islandLeftC + islandWidthC) &&
+              (y > islandLowC) &&
+              (y < islandLowC + islandHeightC)
 
     interface
         shape = islandRect

@@ -7,8 +7,8 @@
 # Create Clock
 #**************************************************************
 create_clock -period "50.000000 MHz" [get_ports CLOCK_50]
-create_generated_clock -name clk_25 -source CLOCK_50 -divide_by 2 clk_25
-set_false_path -from clk_25 -to CLOCK_50
+#create_generated_clock -name clk_25 -source CLOCK_50 -divide_by 2 clk_25
+#set_false_path -from clk_25 -to CLOCK_50
 
 
 

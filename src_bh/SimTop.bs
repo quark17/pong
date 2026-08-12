@@ -1,7 +1,7 @@
 package SimTop (graphics, GraphicsIfc(..)) where
 
 import Global
-import TopNoKbd
+import Top
 import ControllerNoKbd
 import VGACore
 
@@ -23,7 +23,7 @@ graphics :: Module GraphicsIfc
 graphics =
   module
 
-    top :: TopNoKbdIfc XCoord YCoord <- mkTopNoKbd
+    top :: TopIfc XCoord YCoord <- mkTop
 
     w_hPos :: Wire XCoord <- mkWire
     w_vPos :: Wire YCoord <- mkWire

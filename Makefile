@@ -55,7 +55,9 @@ guard-%:
 
 .PHONY: bh_sim
 bh_sim: bh_sim.exe
+bh_sim: PONGVERSION?=0
 
+bh_sim.exe: guard-PONGVERSION
 bh_sim.exe: BHSIMDIR=$(BUILDDIR)/bh_sim
 bh_sim.exe: $(wildcard $(BHSRCDIR)/*) $(wildcard $(VGASRCDIR)/*)
 	mkdir -p $(BHSIMDIR)/bsc_objdir
@@ -69,7 +71,8 @@ bh_sim.exe: $(wildcard $(BHSRCDIR)/*) $(wildcard $(VGASRCDIR)/*)
 		-info-dir . \
 		-p $(BHSRCDIR):+ \
 		-Xcpp -DVGA_SMALL \
-		-Xcpp -DVER2 \
+		-Xcpp -DNOKBD \
+		-Xcpp -DVER$(PONGVERSION) \
 		$(BHSRCDIR)/SimTop.bs \
 		)
 	(cd $(BHSIMDIR) ; \

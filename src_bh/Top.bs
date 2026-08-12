@@ -100,6 +100,13 @@ mkTop =
 #endif
         pictBl = flipBCol cWhite rg_color2 pict
 
+    let tick_action =
+          action
+            ball.tick
+#ifdef VER2
+            island.tick
+#endif
+
     interface
         color1 = rg_color1._write
         color2 = rg_color2._write
@@ -117,10 +124,10 @@ mkTop =
             color := pictBl.color
 
         frameTick =
-          action
-            ball.tick
-#ifdef VER2
-            island.tick
+#if defined(NOKBD)
+          tick_action
+#else
+          if controller.started then tick_action else noAction
 #endif
 
         red   = getRed   color

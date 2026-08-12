@@ -12,10 +12,13 @@ import Ball
 interface Controller =
     autoPlayL :: Bool
     autoPlayR :: Bool
+    started :: Bool
 
 mkController:: Kbd -> Paddle -> Paddle -> Ball -> Module Controller
 mkController kbd paddleL paddleR ball =
   module
+
+    rg_started :: Reg Bool <- mkReg False
 
     repeat :: Reg (UInt 20) <- mkReg 0
 
@@ -33,6 +36,7 @@ mkController kbd paddleL paddleR ball =
     interface
         autoPlayL = autoL
         autoPlayR = autoR
+        started = rg_started
 
     rules
 
@@ -44,6 +48,9 @@ mkController kbd paddleL paddleR ball =
               ScanCode 0xf0 -> -- Release
                 action
                   release := True
+              ScanCode 0x29 -> -- [space]
+                action
+                  rg_started := True
               ScanCode 0x1c -> -- A
                 action
                   doL := not release

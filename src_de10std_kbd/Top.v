@@ -64,7 +64,7 @@ module Top(
    wire						vga_clk;
    wire						vga_rstn;
 
-   wire [7:0]					key;
+   wire [7:0]					ps2_byte;
 
 
 //=======================================================
@@ -141,6 +141,11 @@ module Top(
       cnt_rstn_64 <= 4'd0;
    end
    always @(posedge clk_64) begin
+      if (KEY[0:0] == 1'b0) begin
+	 rstn_64 <= 1'b0;
+	 cnt_rstn_64 <= 0;
+      end
+      else
       if (cnt_rstn_64 < 4'd10) begin
 	 rstn_64 <= 1'b0;
 	 cnt_rstn_64 <= cnt_rstn_64 + 4'd1;
@@ -155,8 +160,8 @@ module Top(
 
    assign LEDR = 0;
 
-   assign HEX0 = hex_to_sseg(key[3:0]);
-   assign HEX1 = hex_to_sseg(key[7:4]);
+   assign HEX0 = hex_to_sseg(ps2_byte[3:0]);
+   assign HEX1 = hex_to_sseg(ps2_byte[7:4]);
    assign HEX2 = 7'b1111111;
    assign HEX3 = 7'b1111111;
    assign HEX4 = 7'b1111111;
@@ -174,7 +179,7 @@ module Top(
 
 			  .kbclk(PS2_CLK),
 			  .kbdata(PS2_DAT),
-			  .key(key),
+			  .key(ps2_byte),
 
 			  .vga_r(VGA_R),
 			  .vga_g(VGA_G),

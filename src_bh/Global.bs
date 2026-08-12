@@ -28,9 +28,9 @@ paddleEdgeDist = 20+border
 
 -- Island parameters
 islandWidth :: Integer
-islandWidth = 100
+islandWidth = hSize `div` 6  -- 100
 islandHeight :: Integer
-islandHeight = 60
+islandHeight = vSize `div` 8  -- 60
 
 -- Ball parameters
 -- Width must be smaller than paddle, since we only check corners for hit

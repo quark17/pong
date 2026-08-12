@@ -2,7 +2,11 @@ package FPGATop_DE10Std(mkFPGATop_DE10Std, FPGAIfc(..)) where
 
 import Global
 import Top
+#ifdef NOKBD
+import ControllerNoKbd
+#else
 import Kbd
+#endif
 import Switch
 import VGACore
 
@@ -10,9 +14,19 @@ interface FPGAIfc =
    color1 :: Bool -> Action {-# prefix = "", arg_names = [ "color1" ] #-}
    color2 :: Bool -> Action {-# prefix = "", arg_names = [ "color2" ] #-}
 
+#ifdef NOKBD
+   autoL     :: Bool -> Action {-# prefix = "", arg_names = [ "autoL" ] #-}
+   userLup   :: Bool -> Action {-# prefix = "", arg_names = [ "userLup" ] #-}
+   userLdown :: Bool -> Action {-# prefix = "", arg_names = [ "userLdown" ] #-}
+
+   autoR     :: Bool -> Action {-# prefix = "", arg_names = [ "autoR" ] #-}
+   userRup   :: Bool -> Action {-# prefix = "", arg_names = [ "userRup" ] #-}
+   userRdown :: Bool -> Action {-# prefix = "", arg_names = [ "userRdown" ] #-}
+#else
    kbclk  :: Bool -> Action {-# prefix = "", arg_names = [ "kbclk" ] #-}
    kbdata :: Bool -> Action {-# prefix = "", arg_names = [ "kbdata" ] #-}
    key :: Bit 8
+#endif
 
    vga_r :: Bit 8
    vga_g :: Bit 8
@@ -29,6 +43,16 @@ mkFPGATop_DE10Std =
     (raw_swColor1, swColor1) :: (RawSwitch, Switch) <- mkSwitch
     (raw_swColor2, swColor2) :: (RawSwitch, Switch) <- mkSwitch
 
+#ifdef NOKBD
+    (raw_swAutoL, swAutoL) :: (RawSwitch, Switch) <- mkSwitch
+    (raw_swUserLup, swUserLup) :: (RawSwitch, Switch) <- mkSwitch
+    (raw_swUserLdown, swUserLdown) :: (RawSwitch, Switch) <- mkSwitch
+
+    (raw_swAutoR, swAutoR) :: (RawSwitch, Switch) <- mkSwitch
+    (raw_swUserRup, swUserRup) :: (RawSwitch, Switch) <- mkSwitch
+    (raw_swUserRdown, swUserRdown) :: (RawSwitch, Switch) <- mkSwitch
+#endif
+
     top :: TopIfc XCoord YCoord <- mkTop
 
     vgaCore :: VGACore XCoord YCoord <- mkVGACore preScale vgaTiming
@@ -43,10 +67,19 @@ mkFPGATop_DE10Std =
       color1 = raw_swColor1.input
       color2 = raw_swColor2.input
 
+#ifdef NOKBD
+      autoL = raw_swAutoL.input
+      userLup = raw_swUserLup.input
+      userLdown = raw_swUserLdown.input
+
+      autoR = raw_swAutoR.input
+      userRup = raw_swUserRup.input
+      userRdown = raw_swUserRdown.input
+#else
       kbclk = top.rawkbd.kbclk
       kbdata = top.rawkbd.kbdata
-
       key = top.rawkbd.key
+#endif
 
       vga_r = mkVGAColor top.red
       vga_g = mkVGAColor top.green
@@ -69,6 +102,14 @@ mkFPGATop_DE10Std =
          action
            top.color1 swColor1.value
            top.color2 swColor2.value
+#ifdef NOKBD
+           top.controller.autoL swAutoL.value
+           top.controller.userLup swUserLup.value
+           top.controller.userLdown swUserLdown.value
+           top.controller.autoR swAutoR.value
+           top.controller.userRup swUserRup.value
+           top.controller.userRdown swUserRdown.value
+#endif
 
       {-# ASSERT no implicit conditions #-}
       {-# ASSERT fire when enabled #-}

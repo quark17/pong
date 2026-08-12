@@ -3,7 +3,11 @@ package Controller (Controller(..), mkController) where
 import Kbd
 import GetPut
 import Paddle
+#if defined(VER1) || defined(VER2)
+import Ball1
+#else
 import Ball
+#endif
 
 interface Controller =
     autoPlayL :: Bool

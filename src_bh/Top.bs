@@ -3,21 +3,38 @@ package Top (mkTop, TopIfc(..)) where
 import List
 import LFSR
 import Global
+#ifdef NOKBD
+import ControllerNoKbd
+#else
 import Kbd
 import Controller
+#endif
 import Border
 import Paddle
-import Ball
 import Shape
 import Score
 import Color
 import Decimal
 
+#if defined(VER1)
+import Island1
+import Ball1
+#elif defined(VER2)
+import Island2
+import Ball1
+#else
+import Ball
+#endif
+
 interface TopIfc hCoord vCoord =
    color1 :: Bool -> Action
    color2 :: Bool -> Action
 
+#ifdef NOKBD
+   controller :: ControllerNoKbd_In
+#else
    rawkbd :: RawKbd
+#endif
 
    coords :: hCoord -> vCoord -> Action
    frameTick :: Action
@@ -38,7 +55,9 @@ mkTop =
     rg_color1 :: Reg Bool <- mkRegU
     rg_color2 :: Reg Bool <- mkRegU
 
+#if !defined(NOKBD)
     (raw_kbd, kbd) :: (RawKbd, Kbd) <- mkKbd
+#endif
 
     lfsr :: LFSR (Bit 32) <- mkLFSR_32
 
@@ -51,9 +70,18 @@ mkTop =
     border :: Shape <- mkBorder
     paddleL :: Paddle <- mkPaddle paddleLXMin
     paddleR :: Paddle <- mkPaddle paddleRXMin
+#if defined(VER1) || defined(VER2)
+    island :: Island <- mkIsland
+    ball :: Ball <- mkBall lfsr.value paddleL paddleR island scoreL.inc scoreR.inc
+#else
     ball :: Ball <- mkBall lfsr.value paddleL paddleR scoreL.inc scoreR.inc
+#endif
 
+#ifdef NOKBD
+    controller :: ControllerNoKbd <- mkControllerNoKbd paddleL paddleR ball
+#else
     controller :: Controller <- mkController kbd paddleL paddleR ball
+#endif
 
     color :: Reg Color <- mkRegU
 
@@ -63,14 +91,24 @@ mkTop =
         padR = flipCol cYellow controller.autoPlayR paddleR.shape
         border' = flipCol (mkRGB 2 0 1) rg_color1 border
         ball' = flipCol (mkRGB 1 1 3) rg_color1 ball.shape
-        pict = joinManyShapes (border' :> ball' :> padL :> padR :> dispL :> dispR :> Nil)
+#if defined(VER1) || defined(VER2)
+        pict = joinManyShapes (border' :> ball' :> padL :> padR :>
+                               dispL :> dispR :> island.shape :> Nil)
+#else
+        pict = joinManyShapes (border' :> ball' :> padL :> padR :>
+                               dispL :> dispR :> Nil)
+#endif
         pictBl = flipBCol cWhite rg_color2 pict
 
     interface
         color1 = rg_color1._write
         color2 = rg_color2._write
 
+#ifdef NOKBD
+        controller = controller.inputs
+#else
         rawkbd = raw_kbd
+#endif
 
         coords hPos vPos =
           action
@@ -78,7 +116,12 @@ mkTop =
             lfsr.next
             color := pictBl.color
 
-        frameTick = ball.tick
+        frameTick =
+          action
+            ball.tick
+#ifdef VER2
+            island.tick
+#endif
 
         red   = getRed   color
         green = getGreen color

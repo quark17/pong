@@ -257,7 +257,7 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name QIP_FILE pll64/pll64.qip
 set_global_assignment -name SIP_FILE pll64/pll64.sip
 
-set_global_assignment -name VERILOG_FILE mkFPGATopNoKbd_DE10Std.v
+set_global_assignment -name VERILOG_FILE mkFPGATop_DE10Std.v
 set_global_assignment -name VERILOG_FILE Top.v
 
 

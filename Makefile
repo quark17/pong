@@ -122,23 +122,20 @@ bh_fpga_nokbd_v2: bh_fpga_nokbd
 # -----
 
 .PHONY: bh_fpga_kbd
-bh_fpga_kbd: BHFPGATOPFILE=FPGATop_DE10Std.bs
-bh_fpga_kbd: BHFPGATOPMOD=mkFPGATop_DE10Std.v
+bh_fpga_kbd: PONGCONTROLLER=KBD
 bh_fpga_kbd: FPGADIR=src_de10std_kbd
 bh_fpga_kbd: BHFPGADIR=$(BUILDDIR)/bh_fpga_kbd_ver$(PONGVERSION)
 bh_fpga_kbd: bh_fpga
 
 .PHONY: bh_fpga_nokbd
-bh_fpga_nokbd: BHFPGATOPFILE=FPGATopNoKbd_DE10Std.bs
-bh_fpga_nokbd: BHFPGATOPMOD=mkFPGATopNoKbd_DE10Std.v
+bh_fpga_nokbd: PONGCONTROLLER=NOKBD
 bh_fpga_nokbd: FPGADIR=src_de10std
 bh_fpga_nokbd: BHFPGADIR=$(BUILDDIR)/bh_fpga_nokbd_ver$(PONGVERSION)
 bh_fpga_nokbd: bh_fpga
 
 .PHONY: bh_fpga
-bh_fpga: guard-PONGVERSION
-bh_fpga: guard-BHFPGATOPFILE guard-BHFPGATOPMOD guard-FPGADIR
-bh_fpga: guard-BHFPGADIR
+bh_fpga: guard-PONGVERSION guard-PONGCONTROLLER
+bh_fpga: guard-FPGADIR guard-BHFPGADIR
 bh_fpga:
 	mkdir -p $(BHFPGADIR)/bsc_objdir
 	(cd $(BHFPGADIR) ; \
@@ -151,9 +148,10 @@ bh_fpga:
 		-info-dir . \
 		-p $(BHSRCDIR):+ \
 		-Xcpp -DVER$(PONGVERSION) \
-		$(BHSRCDIR)/$(BHFPGATOPFILE) \
+		-Xcpp -D$(PONGCONTROLLER) \
+		$(BHSRCDIR)/FPGATop_DE10Std.bs \
 		)
-	#cp $(BHFPGADIR)/$(BHFPGATOPMOD) $(FPGADIR)/
+	#cp $(BHFPGADIR)/FPGATop_DE10Std.bs $(FPGADIR)/
 
 # -------------------------
 

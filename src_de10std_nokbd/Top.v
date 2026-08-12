@@ -141,26 +141,26 @@ module Top(
    assign VGA_CLK = ~ vga_clk;
    assign VGA_SYNC_N = 1;
 
-   mkFPGATopNoKbd_DE10Std pong(
-			       .CLK(vga_clk),
-			       .RST_N(vga_rstn),
+   mkFPGATop_DE10Std pong(
+			  .CLK(vga_clk),
+			  .RST_N(vga_rstn),
 
-			       .color1(SW[0:0]),
-			       .color2(SW[1:1]),
-			       .autoL(SW[2:2]),
-			       .autoR(SW[3:3]),
+			  .color1(SW[0:0]),
+			  .color2(SW[1:1]),
+			  .autoL(SW[2:2]),
+			  .autoR(SW[3:3]),
 
-			       .userLup(KEY[3:3]),
-			       .userLdown(KEY[2:2]),
-			       .userRup(KEY[1:1]),
-			       .userRdown(KEY[0:0]),
+			  .userLup(KEY[3:3]),
+			  .userLdown(KEY[2:2]),
+			  .userRup(KEY[1:1]),
+			  .userRdown(KEY[0:0]),
 
-			       .vga_r(VGA_R),
-			       .vga_g(VGA_G),
-			       .vga_b(VGA_B),
-			       .vga_hs(VGA_HS),
-			       .vga_vs(VGA_VS),
-			       .vga_blank_n(VGA_BLANK_N)
-			       );
+			  .vga_r(VGA_R),
+			  .vga_g(VGA_G),
+			  .vga_b(VGA_B),
+			  .vga_hs(VGA_HS),
+			  .vga_vs(VGA_VS),
+			  .vga_blank_n(VGA_BLANK_N)
+			  );
 
 endmodule // Top

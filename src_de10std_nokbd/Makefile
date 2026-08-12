@@ -18,4 +18,4 @@ clean:
 
 .PHONY: fullclean
 fullclean: clean
-	$(RM) -f mkFPGATopNoKbd_DE10Std.v
+	$(RM) -f mkFPGATop_DE10Std.v
